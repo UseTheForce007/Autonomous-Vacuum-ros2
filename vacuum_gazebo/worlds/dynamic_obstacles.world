@@ -1,0 +1,416 @@
+<?xml version="1.0" ?>
+<sdf version="1.9">
+  <world name="dynamic_obstacles">
+
+    <plugin filename="libgz-sim-physics-system.so" name="gz::sim::systems::Physics"/>
+    <plugin filename="libgz-sim-user-commands-system.so" name="gz::sim::systems::UserCommands"/>
+    <plugin filename="libgz-sim-scene-broadcaster-system.so" name="gz::sim::systems::SceneBroadcaster"/>
+    <plugin filename="libgz-sim-sensors-system.so" name="gz::sim::systems::Sensors"/>
+
+    <scene>
+      <ambient>0.4 0.4 0.4 1.0</ambient>
+      <background>0.7 0.7 0.7 1.0</background>
+    </scene>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <light name="sun" type="directional">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.9 0.9 0.9 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="wall_outer_north">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box><size>16 0.2 2.5</size></box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box><size>16 0.2 2.5</size></box>
+          </geometry>
+          <material>
+            <ambient>0.6 0.6 0.6 1</ambient>
+            <diffuse>0.6 0.6 0.6 1</diffuse>
+          </material>
+        </visual>
+      </link>
+      <pose>8 6.1 1.25 0 0 0</pose>
+    </model>
+
+    <model name="wall_outer_south">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box><size>16 0.2 2.5</size></box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box><size>16 0.2 2.5</size></box>
+          </geometry>
+          <material>
+            <ambient>0.6 0.6 0.6 1</ambient>
+            <diffuse>0.6 0.6 0.6 1</diffuse>
+          </material>
+        </visual>
+      </link>
+      <pose>8 -6.1 1.25 0 0 0</pose>
+    </model>
+
+    <model name="wall_outer_east">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box><size>0.2 12 2.5</size></box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box><size>0.2 12 2.5</size></box>
+          </geometry>
+          <material>
+            <ambient>0.6 0.6 0.6 1</ambient>
+            <diffuse>0.6 0.6 0.6 1</diffuse>
+          </material>
+        </visual>
+      </link>
+      <pose>16.1 0 1.25 0 0 0</pose>
+    </model>
+
+    <model name="wall_outer_west">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box><size>0.2 12 2.5</size></box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box><size>0.2 12 2.5</size></box>
+          </geometry>
+          <material>
+            <ambient>0.6 0.6 0.6 1</ambient>
+            <diffuse>0.6 0.6 0.6 1</diffuse>
+          </material>
+        </visual>
+      </link>
+      <pose>-0.1 0 1.25 0 0 0</pose>
+    </model>
+
+    <model name="wall_interior_1">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box><size>0.2 6 2.5</size></box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box><size>0.2 6 2.5</size></box>
+          </geometry>
+          <material>
+            <ambient>0.7 0.5 0.5 1</ambient>
+            <diffuse>0.7 0.5 0.5 1</diffuse>
+          </material>
+        </visual>
+      </link>
+      <pose>5 0 1.25 0 0 0</pose>
+    </model>
+
+    <model name="wall_interior_2">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box><size>6 0.2 2.5</size></box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box><size>6 0.2 2.5</size></box>
+          </geometry>
+          <material>
+            <ambient>0.7 0.5 0.5 1</ambient>
+            <diffuse>0.7 0.5 0.5 1</diffuse>
+          </material>
+        </visual>
+      </link>
+      <pose>2 -2 1.25 0 0 0</pose>
+    </model>
+
+    <model name="wall_interior_3">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box><size>6 0.2 2.5</size></box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box><size>6 0.2 2.5</size></box>
+          </geometry>
+          <material>
+            <ambient>0.7 0.5 0.5 1</ambient>
+            <diffuse>0.7 0.5 0.5 1</diffuse>
+          </material>
+        </visual>
+      </link>
+      <pose>11 -2 1.25 0 0 0</pose>
+    </model>
+
+    <model name="wall_interior_4">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box><size>0.2 4 2.5</size></box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box><size>0.2 4 2.5</size></box>
+          </geometry>
+          <material>
+            <ambient>0.7 0.5 0.5 1</ambient>
+            <diffuse>0.7 0.5 0.5 1</diffuse>
+          </material>
+        </visual>
+      </link>
+      <pose>11 4 1.25 0 0 0</pose>
+    </model>
+
+    <model name="table">
+      <static>true</static>
+      <link name="top">
+        <pose>0 0 0.4 0 0 0</pose>
+        <collision name="collision">
+          <geometry>
+            <box><size>1.2 0.8 0.05</size></box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box><size>1.2 0.8 0.05</size></box>
+          </geometry>
+          <material>
+            <ambient>0.4 0.3 0.2 1</ambient>
+            <diffuse>0.4 0.3 0.2 1</diffuse>
+          </material>
+        </visual>
+      </link>
+      <link name="leg_bl">
+        <pose>-0.5 -0.35 0.2 0 0 0</pose>
+        <collision name="collision">
+          <geometry>
+            <cylinder><radius>0.02</radius><length>0.4</length></cylinder>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <cylinder><radius>0.02</radius><length>0.4</length></cylinder>
+          </geometry>
+          <material>
+            <ambient>0.3 0.2 0.1 1</ambient>
+            <diffuse>0.3 0.2 0.1 1</diffuse>
+          </material>
+        </visual>
+      </link>
+      <link name="leg_br">
+        <pose>0.5 -0.35 0.2 0 0 0</pose>
+        <collision name="collision">
+          <geometry>
+            <cylinder><radius>0.02</radius><length>0.4</length></cylinder>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <cylinder><radius>0.02</radius><length>0.4</length></cylinder>
+          </geometry>
+          <material>
+            <ambient>0.3 0.2 0.1 1</ambient>
+            <diffuse>0.3 0.2 0.1 1</diffuse>
+          </material>
+        </visual>
+      </link>
+      <link name="leg_tl">
+        <pose>-0.5 0.35 0.2 0 0 0</pose>
+        <collision name="collision">
+          <geometry>
+            <cylinder><radius>0.02</radius><length>0.4</length></cylinder>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <cylinder><radius>0.02</radius><length>0.4</length></cylinder>
+          </geometry>
+          <material>
+            <ambient>0.3 0.2 0.1 1</ambient>
+            <diffuse>0.3 0.2 0.1 1</diffuse>
+          </material>
+        </visual>
+      </link>
+      <link name="leg_tr">
+        <pose>0.5 0.35 0.2 0 0 0</pose>
+        <collision name="collision">
+          <geometry>
+            <cylinder><radius>0.02</radius><length>0.4</length></cylinder>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <cylinder><radius>0.02</radius><length>0.4</length></cylinder>
+          </geometry>
+          <material>
+            <ambient>0.3 0.2 0.1 1</ambient>
+            <diffuse>0.3 0.2 0.1 1</diffuse>
+          </material>
+        </visual>
+      </link>
+      <joint name="joint_bl" type="fixed">
+        <parent>top</parent>
+        <child>leg_bl</child>
+      </joint>
+      <joint name="joint_br" type="fixed">
+        <parent>top</parent>
+        <child>leg_br</child>
+      </joint>
+      <joint name="joint_tl" type="fixed">
+        <parent>top</parent>
+        <child>leg_tl</child>
+      </joint>
+      <joint name="joint_tr" type="fixed">
+        <parent>top</parent>
+        <child>leg_tr</child>
+      </joint>
+      <pose>3 3 0 0 0 0</pose>
+    </model>
+
+    <model name="chair">
+      <static>true</static>
+      <link name="seat">
+        <pose>0 0 0.4 0 0 0</pose>
+        <collision name="collision">
+          <geometry>
+            <box><size>0.4 0.4 0.05</size></box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box><size>0.4 0.4 0.05</size></box>
+          </geometry>
+          <material>
+            <ambient>0.2 0.4 0.6 1</ambient>
+            <diffuse>0.2 0.4 0.6 1</diffuse>
+          </material>
+        </visual>
+      </link>
+      <link name="back">
+        <pose>-0.2 0 0.65 0 0.2 0</pose>
+        <collision name="collision">
+          <geometry>
+            <box><size>0.05 0.4 0.4</size></box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box><size>0.05 0.4 0.4</size></box>
+          </geometry>
+          <material>
+            <ambient>0.2 0.4 0.6 1</ambient>
+            <diffuse>0.2 0.4 0.6 1</diffuse>
+          </material>
+        </visual>
+      </link>
+      <joint name="joint_back" type="fixed">
+        <parent>seat</parent>
+        <child>back</child>
+      </joint>
+      <pose>5.5 -3.5 0 0 0 0</pose>
+    </model>
+
+    <model name="obstacle_box1">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box><size>0.4 0.4 0.4</size></box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box><size>0.4 0.4 0.4</size></box>
+          </geometry>
+          <material>
+            <ambient>0.8 0.2 0.2 1</ambient>
+            <diffuse>0.8 0.2 0.2 1</diffuse>
+          </material>
+        </visual>
+      </link>
+      <pose>8 0 0.2 0 0 0</pose>
+    </model>
+
+    <model name="moving_obstacle">
+      <static>false</static>
+      <pose>10 3 0.2 0 0 0</pose>
+      <link name="body">
+        <collision name="collision">
+          <geometry>
+            <cylinder><radius>0.25</radius><length>0.4</length></cylinder>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <cylinder><radius>0.25</radius><length>0.4</length></cylinder>
+          </geometry>
+          <material>
+            <ambient>1.0 0.5 0 1</ambient>
+            <diffuse>1.0 0.5 0 1</diffuse>
+          </material>
+        </visual>
+        <inertial>
+          <mass>5.0</mass>
+          <inertia>1 0 0 0 1 0 0 0 1</inertia>
+        </inertial>
+      </link>
+      <plugin filename="libgz-sim-velocity-control-system.so" name="gz::sim::systems::VelocityControl">
+        <subtopic>cmd_vel</subtopic>
+      </plugin>
+    </model>
+
+  </world>
+</sdf>

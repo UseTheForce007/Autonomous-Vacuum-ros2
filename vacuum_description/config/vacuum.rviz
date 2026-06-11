@@ -1,0 +1,34 @@
+Panels:
+  - Class: rviz_common/Displays
+    Name: Displays
+  - Class: rviz_common/Views
+    Name: Views
+Visualization Manager:
+  Class: ""
+  Displays:
+    - Class: rviz_default_plugins/RobotModel
+      Name: RobotModel
+      Robot Description: robot_description
+      Visual Enabled: true
+    - Class: rviz_default_plugins/LaserScan
+      Name: LaserScan
+      Topic: /scan
+      Queue Size: 10
+      Style: Points
+    - Class: rviz_default_plugins/Image
+      Name: Camera
+      Topic: /camera/image_raw
+      Queue Size: 2
+    - Class: rviz_default_plugins/TF
+      Name: TF
+      Enabled: true
+    - Class: rviz_default_plugins/Grid
+      Name: Grid
+  Global Options:
+    Fixed Frame: odom
+    Frame Rate: 30
+  Views:
+    Current:
+      Class: rviz_default_plugins/Orbit
+      Distance: 2.0
+      Focal Point: [0, 0, 0]
