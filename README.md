@@ -25,3 +25,22 @@ Or via service call:
 ```
 ros2 service call /map_saver/save_map nav2_msgs/srv/SaveMap "{map_topic: map}"
 ```
+
+## Explorating Frontiers
+
+```
+ros2 launch explore_lite explore.launch.py
+```
+
+Explore is a frontier-based exploration node (explore_lite package). It drives a robot to autonomously explore unknown space.
+Inputs:
+- costmap (nav_msgs/OccupancyGrid) — full occupancy grid
+- costmap_updates (map_msgs/OccupancyGridUpdate) — incremental map updates
+- explore/resume (std_msgs/Bool) — start/stop exploration
+- TF: base_link → map for robot pose
+- Parameters: planner_frequency, progress_timeout, potential_scale, gain_scale, min_frontier_size, visualize, return_to_init, etc.
+Outputs:
+- Action client → navigate_to_pose (sends frontier centroid goals)
+- explore/frontiers (visualization_msgs/MarkerArray) — frontier visualizations (if enabled)
+- explore/status (explore_lite_msgs/ExploreStatus) — state machine status (exploration_started, in_progress, paused, complete, returning_to_origin, etc.)
+Core algorithm: BFS from the robot's position through free space to find frontier cells (unknown cells adjacent to free space), clusters them, ranks by cost (distance vs. size), and sends the best un-blacklisted frontier as a navigation goal. Monitors progress and blacklists stalled frontiers.
