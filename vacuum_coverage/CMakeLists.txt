@@ -48,6 +48,16 @@ ament_target_dependencies(stc_planner_node
   std_srvs
 )
 
+add_executable(boustrophedon_planner_node src/boustrophedon_planner_node.cpp)
+target_link_libraries(boustrophedon_planner_node ${PROJECT_NAME})
+ament_target_dependencies(boustrophedon_planner_node
+  rclcpp
+  nav_msgs
+  geometry_msgs
+  visualization_msgs
+  std_srvs
+)
+
 add_executable(coverage_executor_node src/coverage_executor_node.cpp)
 target_link_libraries(coverage_executor_node ${PROJECT_NAME})
 ament_target_dependencies(coverage_executor_node
@@ -64,6 +74,7 @@ install(TARGETS
   ${PROJECT_NAME}
   map_to_graph_node
   stc_planner_node
+  boustrophedon_planner_node
   coverage_executor_node
   EXPORT ${PROJECT_NAME}
   LIBRARY DESTINATION lib

@@ -4,8 +4,9 @@ from ament_index_python.packages import get_package_share_directory
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration
+from launch.substitutions import LaunchConfiguration, PythonExpression
 from launch_ros.actions import Node
 
 
@@ -18,12 +19,29 @@ def generate_launch_description():
     autostart = LaunchConfiguration('autostart', default='true')
     use_composition = LaunchConfiguration('use_composition', default='True')
     use_respawn = LaunchConfiguration('use_respawn', default='False')
+    map_file = LaunchConfiguration('map', default='')
 
     cell_size = LaunchConfiguration('cell_size', default='0.3')
     occupancy_threshold = LaunchConfiguration('occupancy_threshold', default='50')
     free_threshold_ratio = LaunchConfiguration('free_threshold_ratio', default='0.9')
     start_x = LaunchConfiguration('start_x', default='0.0')
     start_y = LaunchConfiguration('start_y', default='0.0')
+    auto_plan = LaunchConfiguration('auto_plan', default='false')
+
+    planner = LaunchConfiguration('planner', default='boustrophedon_planner_node')
+    is_stc = PythonExpression(["'", planner, "' == 'stc_planner_node'"])
+    is_boustrophedon = PythonExpression(["'", planner, "' == 'boustrophedon_planner_node'"])
+
+    planner_params = {
+        'cell_size': cell_size,
+        'occupancy_threshold': occupancy_threshold,
+        'free_threshold_ratio': free_threshold_ratio,
+        'map_topic': '/map',
+        'start_x': start_x,
+        'start_y': start_y,
+        'auto_plan': auto_plan,
+        'use_sim_time': use_sim_time,
+    }
 
     return LaunchDescription([
         DeclareLaunchArgument(
@@ -57,6 +75,15 @@ def generate_launch_description():
         DeclareLaunchArgument(
             'start_y', default_value='0.0',
             description='Coverage start Y in world coordinates'),
+        DeclareLaunchArgument(
+            'planner', default_value='boustrophedon_planner_node',
+            description='Coverage planner: boustrophedon_planner_node or stc_planner_node'),
+        DeclareLaunchArgument(
+            'auto_plan', default_value='false',
+            description='Auto-plan on every map update (true) or wait for /coverage/replan (false)'),
+        DeclareLaunchArgument(
+            'map', default_value='',
+            description='Full path to map yaml file to load'),
 
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
@@ -67,6 +94,7 @@ def generate_launch_description():
                 'autostart': autostart,
                 'use_composition': use_composition,
                 'use_respawn': use_respawn,
+                'map': map_file,
             }.items(),
         ),
 
@@ -85,19 +113,23 @@ def generate_launch_description():
         ),
 
         Node(
+            condition=IfCondition(is_stc),
             package='vacuum_coverage',
             executable='stc_planner_node',
             name='stc_planner',
             output='screen',
-            parameters=[{
-                'cell_size': cell_size,
-                'occupancy_threshold': occupancy_threshold,
-                'free_threshold_ratio': free_threshold_ratio,
-                'map_topic': '/map',
-                'start_x': start_x,
-                'start_y': start_y,
-                'use_sim_time': use_sim_time,
-            }],
+            parameters=[planner_params],
+            remappings=[('~/coverage_path', '/coverage_path'), ('~/replan', '/coverage/replan')],
+        ),
+
+        Node(
+            condition=IfCondition(is_boustrophedon),
+            package='vacuum_coverage',
+            executable='boustrophedon_planner_node',
+            name='boustrophedon_planner',
+            output='screen',
+            parameters=[planner_params],
+            remappings=[('~/coverage_path', '/coverage_path'), ('~/replan', '/coverage/replan')],
         ),
 
         Node(
@@ -106,7 +138,7 @@ def generate_launch_description():
             name='coverage_executor',
             output='screen',
             parameters=[{
-                'waypoints_topic': '/stc_planner/coverage_path',
+                'waypoints_topic': '/coverage_path',
                 'use_sim_time': use_sim_time,
             }],
         ),

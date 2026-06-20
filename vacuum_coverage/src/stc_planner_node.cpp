@@ -28,12 +28,14 @@ public:
     std::string map_topic = declare_parameter("map_topic", "/map");
     double start_x = declare_parameter("start_x", 0.0);
     double start_y = declare_parameter("start_y", 0.0);
+    bool auto_plan = declare_parameter("auto_plan", false);
 
     converter_ = std::make_shared<MapToGraph>(cell_size, occupancy_threshold, free_threshold_ratio);
     planner_ = std::make_shared<STCPlanner>();
 
     start_x_ = start_x;
     start_y_ = start_y;
+    auto_plan_ = auto_plan;
 
     map_sub_ = create_subscription<nav_msgs::msg::OccupancyGrid>(
       map_topic, rclcpp::QoS(1).transient_local(),
@@ -51,15 +53,17 @@ public:
         std::placeholders::_1, std::placeholders::_2));
 
     RCLCPP_INFO(get_logger(),
-      "STCPlannerNode started. cell_size=%.2f, start=(%.2f, %.2f)",
-      cell_size, start_x, start_y);
+      "STCPlannerNode started. cell_size=%.2f, start=(%.2f, %.2f), auto_plan=%s",
+      cell_size, start_x, start_y, auto_plan ? "true" : "false");
   }
 
 private:
   void map_callback(const nav_msgs::msg::OccupancyGrid::SharedPtr msg)
   {
     last_map_ = msg;
-    run_planner();
+    if (auto_plan_) {
+      run_planner();
+    }
   }
 
   void replan_callback(
@@ -204,6 +208,7 @@ private:
   std::shared_ptr<STCPlanner> planner_;
   double start_x_;
   double start_y_;
+  bool auto_plan_;
   nav_msgs::msg::OccupancyGrid::SharedPtr last_map_;
 };
 

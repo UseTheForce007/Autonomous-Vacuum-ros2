@@ -33,7 +33,7 @@ public:
 
     action_client_ = rclcpp_action::create_client<ActionT>(this, "/follow_waypoints");
 
-    replan_client_ = create_client<std_srvs::srv::Trigger>("/stc_planner/replan");
+    replan_client_ = create_client<std_srvs::srv::Trigger>("/coverage/replan");
 
     start_srv_ = create_service<std_srvs::srv::Trigger>(
       "/start_coverage",

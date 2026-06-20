@@ -119,6 +119,18 @@ nav_msgs::msg::Path STCPlanner::plan(
 
   traverse_tree(start_id, -1, graph, path);
 
+  for (size_t i = 0; i + 1 < path.poses.size(); ++i) {
+    double dx = path.poses[i + 1].pose.position.x - path.poses[i].pose.position.x;
+    double dy = path.poses[i + 1].pose.position.y - path.poses[i].pose.position.y;
+    double yaw = std::atan2(dy, dx);
+    path.poses[i].pose.orientation.z = std::sin(yaw * 0.5);
+    path.poses[i].pose.orientation.w = std::cos(yaw * 0.5);
+  }
+  if (path.poses.size() >= 2) {
+    path.poses.back().pose.orientation =
+      path.poses[path.poses.size() - 2].pose.orientation;
+  }
+
   return path;
 }
 

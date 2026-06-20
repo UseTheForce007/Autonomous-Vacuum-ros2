@@ -20,6 +20,7 @@ def generate_launch_description():
     autostart = LaunchConfiguration('autostart', default='true')
     use_composition = LaunchConfiguration('use_composition', default='True')
     use_respawn = LaunchConfiguration('use_respawn', default='False')
+    map_file = LaunchConfiguration('map', default='')
 
     param_file = os.path.join(pkg_dir, 'param', 'waffle.yaml')
     rviz_config = os.path.join(pkg_dir, 'rviz', 'tb3_navigation2.rviz')
@@ -40,12 +41,15 @@ def generate_launch_description():
         DeclareLaunchArgument(
             'use_respawn', default_value='False',
             description='Whether to respawn if a node crashes'),
+        DeclareLaunchArgument(
+            'map', default_value='',
+            description='Full path to map yaml file to load'),
 
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
                 os.path.join(nav2_launch_dir, 'bringup_launch.py')),
             launch_arguments={
-                'map': '',
+                'map': map_file,
                 'use_sim_time': use_sim_time,
                 'slam': slam,
                 'params_file': param_file,
