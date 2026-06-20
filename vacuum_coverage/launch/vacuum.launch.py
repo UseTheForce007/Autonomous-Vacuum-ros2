@@ -4,9 +4,8 @@ from ament_index_python.packages import get_package_share_directory
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
-from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration, PythonExpression
+from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
 
@@ -15,7 +14,7 @@ def generate_launch_description():
     pkg_nav = get_package_share_directory('vacuum_nav')
 
     use_sim_time = LaunchConfiguration('use_sim_time', default='true')
-    slam = LaunchConfiguration('slam', default='False')
+    slam = LaunchConfiguration('slam', default='True')
     autostart = LaunchConfiguration('autostart', default='true')
     use_composition = LaunchConfiguration('use_composition', default='True')
     use_respawn = LaunchConfiguration('use_respawn', default='False')
@@ -28,9 +27,7 @@ def generate_launch_description():
     start_y = LaunchConfiguration('start_y', default='0.0')
     auto_plan = LaunchConfiguration('auto_plan', default='false')
 
-    planner = LaunchConfiguration('planner', default='boustrophedon_planner_node')
-    is_stc = PythonExpression(["'", planner, "' == 'stc_planner_node'"])
-    is_boustrophedon = PythonExpression(["'", planner, "' == 'boustrophedon_planner_node'"])
+    planner = LaunchConfiguration('planner', default='stc_planner_node')
 
     planner_params = {
         'cell_size': cell_size,
@@ -76,7 +73,7 @@ def generate_launch_description():
             'start_y', default_value='0.0',
             description='Coverage start Y in world coordinates'),
         DeclareLaunchArgument(
-            'planner', default_value='boustrophedon_planner_node',
+            'planner', default_value='stc_planner_node',
             description='Coverage planner: boustrophedon_planner_node or stc_planner_node'),
         DeclareLaunchArgument(
             'auto_plan', default_value='false',
@@ -108,28 +105,20 @@ def generate_launch_description():
                 'occupancy_threshold': occupancy_threshold,
                 'free_threshold_ratio': free_threshold_ratio,
                 'map_topic': '/map',
+                'auto_plan': auto_plan,
                 'use_sim_time': use_sim_time,
             }],
+            remappings=[('~/replan', '/map_to_graph/replan')],
         ),
 
         Node(
-            condition=IfCondition(is_stc),
             package='vacuum_coverage',
-            executable='stc_planner_node',
-            name='stc_planner',
+            executable=planner,
+            name='coverage_planner',
             output='screen',
             parameters=[planner_params],
-            remappings=[('~/coverage_path', '/coverage_path'), ('~/replan', '/coverage/replan')],
-        ),
-
-        Node(
-            condition=IfCondition(is_boustrophedon),
-            package='vacuum_coverage',
-            executable='boustrophedon_planner_node',
-            name='boustrophedon_planner',
-            output='screen',
-            parameters=[planner_params],
-            remappings=[('~/coverage_path', '/coverage_path'), ('~/replan', '/coverage/replan')],
+            remappings=[('~/coverage_path', '/coverage_path'),
+                        ('~/replan', '/coverage/replan')],
         ),
 
         Node(

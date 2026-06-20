@@ -36,6 +36,7 @@ ament_target_dependencies(map_to_graph_node
   nav_msgs
   geometry_msgs
   visualization_msgs
+  std_srvs
 )
 
 add_executable(stc_planner_node src/stc_planner_node.cpp)

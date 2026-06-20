@@ -7,6 +7,7 @@
 #include <geometry_msgs/msg/point.hpp>
 #include <nav_msgs/msg/occupancy_grid.hpp>
 #include <rclcpp/rclcpp.hpp>
+#include <std_srvs/srv/trigger.hpp>
 #include <visualization_msgs/msg/marker.hpp>
 #include <visualization_msgs/msg/marker_array.hpp>
 
@@ -23,8 +24,10 @@ public:
     int occupancy_threshold = declare_parameter("occupancy_threshold", 50);
     double free_threshold_ratio = declare_parameter("free_threshold_ratio", 0.9);
     std::string map_topic = declare_parameter("map_topic", "/map");
+    bool auto_plan = declare_parameter("auto_plan", false);
 
     converter_ = std::make_shared<MapToGraph>(cell_size, occupancy_threshold, free_threshold_ratio);
+    auto_plan_ = auto_plan;
 
     map_sub_ = create_subscription<nav_msgs::msg::OccupancyGrid>(
       map_topic, rclcpp::QoS(1).transient_local(),
@@ -36,22 +39,52 @@ public:
     processed_map_pub_ = create_publisher<nav_msgs::msg::OccupancyGrid>(
       "~/processed_map", rclcpp::QoS(1).transient_local());
 
-    RCLCPP_INFO(get_logger(), "MapToGraphNode started. cell_size=%.2f, threshold=%d, free_ratio=%.2f",
-      cell_size, occupancy_threshold, free_threshold_ratio);
+    replan_srv_ = create_service<std_srvs::srv::Trigger>(
+      "~/replan",
+      std::bind(&MapToGraphNode::replan_callback, this,
+        std::placeholders::_1, std::placeholders::_2));
+
+    RCLCPP_INFO(get_logger(),
+      "MapToGraphNode started. cell_size=%.2f, threshold=%d, free_ratio=%.2f, auto_plan=%s",
+      cell_size, occupancy_threshold, free_threshold_ratio, auto_plan ? "true" : "false");
   }
 
 private:
   void map_callback(const nav_msgs::msg::OccupancyGrid::SharedPtr msg)
   {
-    RCLCPP_INFO(get_logger(), "Received map: %ux%u, resolution=%.3f",
-      msg->info.width, msg->info.height, msg->info.resolution);
+    last_map_ = msg;
+    if (auto_plan_) {
+      convert_and_publish();
+    }
+  }
 
-    Graph graph = converter_->convert(*msg);
+  void replan_callback(
+    const std::shared_ptr<std_srvs::srv::Trigger::Request> request,
+    std::shared_ptr<std_srvs::srv::Trigger::Response> response)
+  {
+    (void)request;
+    if (!last_map_) {
+      response->success = false;
+      response->message = "No map received yet";
+      return;
+    }
+    convert_and_publish();
+    response->success = true;
+    response->message = "Graph rebuilt and published";
+  }
+
+  void convert_and_publish()
+  {
+    if (!last_map_) {
+      return;
+    }
+
+    Graph graph = converter_->convert(*last_map_);
     RCLCPP_INFO(get_logger(), "Graph built: %d nodes, %d edges",
       graph.node_count(), graph.edge_count());
 
-    publish_graph_visualization(graph, msg->header.frame_id);
-    publish_processed_map(*msg);
+    publish_graph_visualization(graph, last_map_->header.frame_id);
+    publish_processed_map(*last_map_);
   }
 
   void publish_graph_visualization(const Graph & graph, const std::string & frame_id)
@@ -150,7 +183,10 @@ private:
   rclcpp::Subscription<nav_msgs::msg::OccupancyGrid>::SharedPtr map_sub_;
   rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr viz_pub_;
   rclcpp::Publisher<nav_msgs::msg::OccupancyGrid>::SharedPtr processed_map_pub_;
+  rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr replan_srv_;
   std::shared_ptr<MapToGraph> converter_;
+  bool auto_plan_;
+  nav_msgs::msg::OccupancyGrid::SharedPtr last_map_;
 };
 
 }  // namespace vacuum_coverage
