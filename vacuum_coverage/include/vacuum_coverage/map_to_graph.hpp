@@ -26,12 +26,12 @@ public:
   int decomposed_height() const { return decomposed_height_; }
 
 private:
-  std::vector<std::vector<int>> build_downsampled_grid(
+  std::vector<int> build_downsampled_grid(
     const nav_msgs::msg::OccupancyGrid & map,
     int stride);
 
   Graph build_graph(
-    const std::vector<std::vector<int>> & grid,
+    const std::vector<int> & grid,
     int stride,
     double origin_x,
     double origin_y,

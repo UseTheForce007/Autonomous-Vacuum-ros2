@@ -84,7 +84,7 @@ private:
       graph.node_count(), graph.edge_count());
 
     publish_graph_visualization(graph, last_map_->header.frame_id);
-    publish_processed_map(*last_map_);
+    publish_processed_map(*last_map_, graph);
   }
 
   void publish_graph_visualization(const Graph & graph, const std::string & frame_id)
@@ -153,7 +153,7 @@ private:
     viz_pub_->publish(markers);
   }
 
-  void publish_processed_map(const nav_msgs::msg::OccupancyGrid & original)
+  void publish_processed_map(const nav_msgs::msg::OccupancyGrid & original, const Graph & graph)
   {
     nav_msgs::msg::OccupancyGrid out;
     out.header = original.header;
@@ -163,9 +163,6 @@ private:
     out.info.origin = original.info.origin;
 
     out.data.resize(out.info.width * out.info.height, -1);
-
-    Graph graph;
-    graph = converter_->convert(original);
 
     for (int dy = 0; dy < static_cast<int>(out.info.height); ++dy) {
       for (int dx = 0; dx < static_cast<int>(out.info.width); ++dx) {

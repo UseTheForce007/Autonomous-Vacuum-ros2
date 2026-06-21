@@ -20,7 +20,7 @@ MapToGraph::MapToGraph(
 {
 }
 
-std::vector<std::vector<int>> MapToGraph::build_downsampled_grid(
+std::vector<int> MapToGraph::build_downsampled_grid(
   const nav_msgs::msg::OccupancyGrid & map,
   int stride)
 {
@@ -30,12 +30,9 @@ std::vector<std::vector<int>> MapToGraph::build_downsampled_grid(
   decomposed_width_ = std::ceil(static_cast<double>(width) / stride);
   decomposed_height_ = std::ceil(static_cast<double>(height) / stride);
 
-  std::vector<std::vector<int>> grid(
-    decomposed_height_, std::vector<int>(decomposed_width_, 0));
+  std::vector<int> grid(decomposed_width_ * decomposed_height_, 0);
 
   auto threshold = static_cast<int8_t>(occupancy_threshold_);
-  int cells_per_block = stride * stride;
-  int min_free_cells = static_cast<int>(cells_per_block * free_threshold_ratio_);
 
   for (int dy = 0; dy < decomposed_height_; ++dy) {
     for (int dx = 0; dx < decomposed_width_; ++dx) {
@@ -55,11 +52,12 @@ std::vector<std::vector<int>> MapToGraph::build_downsampled_grid(
           ++total;
         }
       }
+      int idx = dy * decomposed_width_ + dx;
       if (total == 0) {
-        grid[dy][dx] = -1;
+        grid[idx] = -1;
       } else {
         int required = static_cast<int>(total * free_threshold_ratio_);
-        grid[dy][dx] = (free_count >= required) ? 0 : -1;
+        grid[idx] = (free_count >= required) ? 0 : -1;
       }
     }
   }
@@ -68,7 +66,7 @@ std::vector<std::vector<int>> MapToGraph::build_downsampled_grid(
 }
 
 Graph MapToGraph::build_graph(
-  const std::vector<std::vector<int>> & grid,
+  const std::vector<int> & grid,
   int stride,
   double origin_x,
   double origin_y,
@@ -76,25 +74,30 @@ Graph MapToGraph::build_graph(
 {
   Graph graph;
 
+  std::vector<int> node_ids(decomposed_width_ * decomposed_height_, -1);
+
   for (int dy = 0; dy < decomposed_height_; ++dy) {
     for (int dx = 0; dx < decomposed_width_; ++dx) {
-      if (grid[dy][dx] != 0) {
+      int idx = dy * decomposed_width_ + dx;
+      if (grid[idx] != 0) {
         continue;
       }
 
       double wx = origin_x + (dx * stride + stride / 2.0) * resolution;
       double wy = origin_y + (dy * stride + stride / 2.0) * resolution;
-      graph.add_node(dx, dy, wx, wy, false);
+      int id = graph.add_node(dx, dy, wx, wy, false);
+      node_ids[idx] = id;
     }
   }
 
   const int dirs[4][2] = {{1, 0}, {0, 1}, {-1, 0}, {0, -1}};
   for (int dy = 0; dy < decomposed_height_; ++dy) {
     for (int dx = 0; dx < decomposed_width_; ++dx) {
-      if (grid[dy][dx] != 0) {
+      int from_idx = dy * decomposed_width_ + dx;
+      int from_id = node_ids[from_idx];
+      if (from_id == -1) {
         continue;
       }
-      int from_id = graph.node_id_at(dx, dy);
 
       for (auto & dir : dirs) {
         int nx = dx + dir[0];
@@ -104,13 +107,11 @@ Graph MapToGraph::build_graph(
         {
           continue;
         }
-        if (grid[ny][nx] != 0) {
+        int to_idx = ny * decomposed_width_ + nx;
+        int to_id = node_ids[to_idx];
+        if (to_id == -1) {
           continue;
         }
-        if (!graph.has_node_at(nx, ny)) {
-          continue;
-        }
-        int to_id = graph.node_id_at(nx, ny);
         if (from_id < to_id) {
           graph.add_edge(from_id, to_id, cell_size_);
         }
