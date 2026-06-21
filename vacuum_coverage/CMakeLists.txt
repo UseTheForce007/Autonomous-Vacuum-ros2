@@ -85,4 +85,9 @@ install(TARGETS
 install(DIRECTORY launch
   DESTINATION share/${PROJECT_NAME})
 
+install(PROGRAMS
+  scripts/extract_poly.py
+  scripts/send_coverage_goal.py
+  DESTINATION lib/${PROJECT_NAME})
+
 ament_package()
