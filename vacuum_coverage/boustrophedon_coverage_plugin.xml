@@ -1,0 +1,11 @@
+<library path="boustrophedon_coverage_planner">
+  <class type="vacuum_coverage::BoustrophedonCoveragePlanner"
+         base_class_type="nav2_core::GlobalPlanner">
+    <description>
+      Boustrophedon coverage planner with A* obstacle-aware transitions.
+      Room decomposition uses 8-connectivity on the original costmap;
+      intra-room sweep uses inflated costmap; inter-room connectors
+      use A* on the original costmap to preserve narrow doorways.
+    </description>
+  </class>
+</library>

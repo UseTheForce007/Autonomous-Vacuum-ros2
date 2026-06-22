@@ -4,63 +4,42 @@ project(vacuum_coverage)
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_action REQUIRED)
+find_package(rclcpp_lifecycle REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(nav2_msgs REQUIRED)
+find_package(nav2_core REQUIRED)
+find_package(nav2_costmap_2d REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
+find_package(tf2_ros REQUIRED)
+find_package(pluginlib REQUIRED)
 
-set(library_sources
-  src/graph.cpp
-  src/map_to_graph.cpp
-  src/stc_planner.cpp
+# --- Nav2 plugin: boustrophedon coverage planner ---
+add_library(boustrophedon_coverage_planner SHARED
+  src/boustrophedon_coverage_planner.cpp
 )
 
-add_library(${PROJECT_NAME} ${library_sources})
-
-target_include_directories(${PROJECT_NAME} PUBLIC
+target_include_directories(boustrophedon_coverage_planner PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
 
-ament_target_dependencies(${PROJECT_NAME}
+ament_target_dependencies(boustrophedon_coverage_planner
   rclcpp
+  rclcpp_lifecycle
   nav_msgs
+  nav2_core
+  nav2_costmap_2d
   geometry_msgs
-  visualization_msgs
+  tf2_ros
+  pluginlib
 )
 
-add_executable(map_to_graph_node src/map_to_graph_node.cpp)
-target_link_libraries(map_to_graph_node ${PROJECT_NAME})
-ament_target_dependencies(map_to_graph_node
-  rclcpp
-  nav_msgs
-  geometry_msgs
-  visualization_msgs
-  std_srvs
-)
+pluginlib_export_plugin_description_file(nav2_core boustrophedon_coverage_plugin.xml)
 
-add_executable(stc_planner_node src/stc_planner_node.cpp)
-target_link_libraries(stc_planner_node ${PROJECT_NAME})
-ament_target_dependencies(stc_planner_node
-  rclcpp
-  nav_msgs
-  geometry_msgs
-  visualization_msgs
-  std_srvs
-)
-
-add_executable(boustrophedon_planner_node src/boustrophedon_planner_node.cpp)
-target_link_libraries(boustrophedon_planner_node ${PROJECT_NAME})
-ament_target_dependencies(boustrophedon_planner_node
-  rclcpp
-  nav_msgs
-  geometry_msgs
-  visualization_msgs
-  std_srvs
-)
-
+# --- Coverage executor (bridges path topic → FollowWaypoints) ---
 add_executable(coverage_executor_node src/coverage_executor_node.cpp)
-target_link_libraries(coverage_executor_node ${PROJECT_NAME})
+
 ament_target_dependencies(coverage_executor_node
   rclcpp
   rclcpp_action
@@ -72,10 +51,7 @@ ament_target_dependencies(coverage_executor_node
 )
 
 install(TARGETS
-  ${PROJECT_NAME}
-  map_to_graph_node
-  stc_planner_node
-  boustrophedon_planner_node
+  boustrophedon_coverage_planner
   coverage_executor_node
   EXPORT ${PROJECT_NAME}
   LIBRARY DESTINATION lib
@@ -88,6 +64,7 @@ install(DIRECTORY launch
 install(PROGRAMS
   scripts/extract_poly.py
   scripts/send_coverage_goal.py
+  scripts/publish_coverage_path.py
   DESTINATION lib/${PROJECT_NAME})
 
 ament_package()

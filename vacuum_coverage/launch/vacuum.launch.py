@@ -20,26 +20,6 @@ def generate_launch_description():
     use_respawn = LaunchConfiguration('use_respawn', default='False')
     map_file = LaunchConfiguration('map', default='')
 
-    cell_size = LaunchConfiguration('cell_size', default='0.3')
-    occupancy_threshold = LaunchConfiguration('occupancy_threshold', default='50')
-    free_threshold_ratio = LaunchConfiguration('free_threshold_ratio', default='0.9')
-    start_x = LaunchConfiguration('start_x', default='0.0')
-    start_y = LaunchConfiguration('start_y', default='0.0')
-    auto_plan = LaunchConfiguration('auto_plan', default='false')
-
-    planner = LaunchConfiguration('planner', default='stc_planner_node')
-
-    planner_params = {
-        'cell_size': cell_size,
-        'occupancy_threshold': occupancy_threshold,
-        'free_threshold_ratio': free_threshold_ratio,
-        'map_topic': '/map',
-        'start_x': start_x,
-        'start_y': start_y,
-        'auto_plan': auto_plan,
-        'use_sim_time': use_sim_time,
-    }
-
     return LaunchDescription([
         DeclareLaunchArgument(
             'slam', default_value='False',
@@ -56,28 +36,6 @@ def generate_launch_description():
         DeclareLaunchArgument(
             'use_respawn', default_value='False',
             description='Whether to respawn if a node crashes'),
-
-        DeclareLaunchArgument(
-            'cell_size', default_value='0.3',
-            description='Decomposed cell side length for coverage graph'),
-        DeclareLaunchArgument(
-            'occupancy_threshold', default_value='50',
-            description='Max occupancy value to consider a cell free'),
-        DeclareLaunchArgument(
-            'free_threshold_ratio', default_value='0.9',
-            description='Min fraction of free sub-cells for a block to be free'),
-        DeclareLaunchArgument(
-            'start_x', default_value='0.0',
-            description='Coverage start X in world coordinates'),
-        DeclareLaunchArgument(
-            'start_y', default_value='0.0',
-            description='Coverage start Y in world coordinates'),
-        DeclareLaunchArgument(
-            'planner', default_value='stc_planner_node',
-            description='Coverage planner: boustrophedon_planner_node or stc_planner_node'),
-        DeclareLaunchArgument(
-            'auto_plan', default_value='false',
-            description='Auto-plan on every map update (true) or wait for /coverage/replan (false)'),
         DeclareLaunchArgument(
             'map', default_value='',
             description='Full path to map yaml file to load'),
@@ -97,37 +55,12 @@ def generate_launch_description():
 
         Node(
             package='vacuum_coverage',
-            executable='map_to_graph_node',
-            name='map_to_graph',
-            output='screen',
-            parameters=[{
-                'cell_size': cell_size,
-                'occupancy_threshold': occupancy_threshold,
-                'free_threshold_ratio': free_threshold_ratio,
-                'map_topic': '/map',
-                'auto_plan': auto_plan,
-                'use_sim_time': use_sim_time,
-            }],
-            remappings=[('~/replan', '/map_to_graph/replan')],
-        ),
-
-        Node(
-            package='vacuum_coverage',
-            executable=planner,
-            name='coverage_planner',
-            output='screen',
-            parameters=[planner_params],
-            remappings=[('~/coverage_path', '/coverage_path'),
-                        ('~/replan', '/coverage/replan')],
-        ),
-
-        Node(
-            package='vacuum_coverage',
             executable='coverage_executor_node',
             name='coverage_executor',
             output='screen',
             parameters=[{
-                'waypoints_topic': '/coverage_path',
+                'waypoints_topic': '/planner_server/coverage_path',
+                'replan_service': '/planner_server/replan',
                 'use_sim_time': use_sim_time,
             }],
         ),

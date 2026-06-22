@@ -299,12 +299,17 @@ map_saver:
 planner_server:
   ros__parameters:
     expected_planner_frequency: 10.0
-    planner_plugins: ["GridBased"]
+    planner_plugins: ["GridBased", "CoverageBased"]
     GridBased:
       plugin: "nav2_navfn_planner::NavfnPlanner"
       tolerance: 0.5
       use_astar: false
       allow_unknown: true
+    CoverageBased:
+      plugin: "vacuum_coverage::BoustrophedonCoveragePlanner"
+      spacing: 0.5
+      robot_radius: 0.4
+      min_room_area: 0.5
 
 behavior_server:
   ros__parameters:

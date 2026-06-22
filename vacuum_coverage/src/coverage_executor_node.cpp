@@ -26,6 +26,7 @@ public:
   : Node("coverage_executor_node")
   {
     std::string waypoints_topic = declare_parameter("waypoints_topic", "/stc_planner_node/coverage_path");
+    std::string replan_service = declare_parameter("replan_service", "/planner_server/replan");
 
     path_sub_ = create_subscription<nav_msgs::msg::Path>(
       waypoints_topic, rclcpp::QoS(1).transient_local(),
@@ -33,7 +34,7 @@ public:
 
     action_client_ = rclcpp_action::create_client<ActionT>(this, "/follow_waypoints");
 
-    replan_client_ = create_client<std_srvs::srv::Trigger>("/coverage/replan");
+    replan_client_ = create_client<std_srvs::srv::Trigger>(replan_service);
 
     start_srv_ = create_service<std_srvs::srv::Trigger>(
       "/start_coverage",
@@ -97,7 +98,7 @@ private:
 
     if (!replan_client_->wait_for_service(std::chrono::seconds(1))) {
       response->success = false;
-      response->message = "STC planner replan service not available. Is stc_planner running?";
+      response->message = "Replan service not available";
       RCLCPP_ERROR(get_logger(), "Replan service not available");
       return;
     }
