@@ -1,3 +1,17 @@
+slam_toolbox:
+  ros__parameters:
+    max_laser_range: 3.5
+    minimum_travel_distance: 0.1
+    minimum_travel_heading: 0.1
+    minimum_time_interval: 0.2
+    map_update_interval: 1.0
+    resolution: 0.05
+    scan_buffer_size: 10
+    transform_publish_period: 0.02
+    use_scan_barycenter: true
+    mode: mapping
+    occupancy_threshold: 0.1
+
 amcl:
   ros__parameters:
     alpha1: 0.2
@@ -38,7 +52,7 @@ amcl:
     z_short: 0.05
     scan_topic: scan
     map_topic: map
-    set_initial_pose: false
+    set_initial_pose: true
     always_reset_initial_pose: false
     first_map_only: false
     initial_pose:
@@ -168,14 +182,14 @@ local_costmap:
       global_frame: odom
       robot_base_frame: base_link
       rolling_window: true
-      width: 3
-      height: 3
+      width: 5
+      height: 5
       resolution: 0.05
       robot_radius: 0.15
       plugins: ["obstacle_layer", "voxel_layer", "inflation_layer"]
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
-        inflation_radius: 0.5
+        inflation_radius: 0.25
         cost_scaling_factor: 5.0
       obstacle_layer:
         plugin: "nav2_costmap_2d::ObstacleLayer"
@@ -187,6 +201,10 @@ local_costmap:
           clearing: true
           marking: true
           data_type: "LaserScan"
+          raytrace_max_range: 8.0
+          raytrace_min_range: 0.0
+          obstacle_max_range: 6.0
+          obstacle_min_range: 0.0
       voxel_layer:
         plugin: "nav2_costmap_2d::VoxelLayer"
         enabled: true
@@ -203,9 +221,9 @@ local_costmap:
           clearing: true
           marking: true
           data_type: "LaserScan"
-          raytrace_max_range: 3.0
+          raytrace_max_range: 8.0
           raytrace_min_range: 0.0
-          obstacle_max_range: 2.5
+          obstacle_max_range: 6.0
           obstacle_min_range: 0.0
       static_layer:
         map_subscribe_transient_local: true
@@ -233,9 +251,9 @@ global_costmap:
           clearing: true
           marking: true
           data_type: "LaserScan"
-          raytrace_max_range: 3.0
+          raytrace_max_range: 8.0
           raytrace_min_range: 0.0
-          obstacle_max_range: 2.5
+          obstacle_max_range: 6.0
           obstacle_min_range: 0.0
       voxel_layer:
         plugin: "nav2_costmap_2d::VoxelLayer"
@@ -253,9 +271,9 @@ global_costmap:
           clearing: true
           marking: true
           data_type: "LaserScan"
-          raytrace_max_range: 3.0
+          raytrace_max_range: 8.0
           raytrace_min_range: 0.0
-          obstacle_max_range: 2.5
+          obstacle_max_range: 6.0
           obstacle_min_range: 0.0
       static_layer:
         plugin: "nav2_costmap_2d::StaticLayer"
@@ -263,7 +281,7 @@ global_costmap:
         transform_tolerance: 0.1
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
-        inflation_radius: 0.5
+        inflation_radius: 0.25
         cost_scaling_factor: 5.0
       always_send_full_costmap: true
 
@@ -281,12 +299,17 @@ map_saver:
 planner_server:
   ros__parameters:
     expected_planner_frequency: 10.0
-    planner_plugins: ["GridBased"]
+    planner_plugins: ["GridBased", "CoverageBased"]
     GridBased:
       plugin: "nav2_navfn_planner::NavfnPlanner"
       tolerance: 0.5
       use_astar: false
       allow_unknown: true
+    CoverageBased:
+      plugin: "vacuum_coverage::BoustrophedonCoveragePlanner"
+      spacing: 0.5
+      robot_radius: 0.4
+      min_room_area: 0.5
 
 behavior_server:
   ros__parameters:

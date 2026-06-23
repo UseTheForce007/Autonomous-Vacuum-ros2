@@ -3,27 +3,22 @@ import os
 from ament_index_python.packages import get_package_share_directory
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument
-from launch.actions import IncludeLaunchDescription
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
 
 def generate_launch_description():
-    pkg_dir = get_package_share_directory('vacuum_nav')
-    nav2_bringup_dir = get_package_share_directory('nav2_bringup')
-    nav2_launch_dir = os.path.join(nav2_bringup_dir, 'launch')
+    pkg_coverage = get_package_share_directory('vacuum_coverage')
+    pkg_nav = get_package_share_directory('vacuum_nav')
 
     use_sim_time = LaunchConfiguration('use_sim_time', default='true')
-    slam = LaunchConfiguration('slam', default='False')
+    slam = LaunchConfiguration('slam', default='True')
     autostart = LaunchConfiguration('autostart', default='true')
     use_composition = LaunchConfiguration('use_composition', default='True')
     use_respawn = LaunchConfiguration('use_respawn', default='False')
     map_file = LaunchConfiguration('map', default='')
-
-    param_file = os.path.join(pkg_dir, 'param', 'waffle.yaml')
-    rviz_config = os.path.join(pkg_dir, 'rviz', 'tb3_navigation2.rviz')
 
     return LaunchDescription([
         DeclareLaunchArgument(
@@ -47,24 +42,26 @@ def generate_launch_description():
 
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
-                os.path.join(nav2_launch_dir, 'bringup_launch.py')),
+                os.path.join(pkg_nav, 'launch', 'nav2_bringup.launch.py')),
             launch_arguments={
-                'map': map_file,
-                'use_sim_time': use_sim_time,
                 'slam': slam,
-                'params_file': param_file,
+                'use_sim_time': use_sim_time,
                 'autostart': autostart,
                 'use_composition': use_composition,
                 'use_respawn': use_respawn,
+                'map': map_file,
             }.items(),
         ),
 
         Node(
-            package='rviz2',
-            executable='rviz2',
-            name='rviz2',
-            arguments=['-d', rviz_config],
-            parameters=[{'use_sim_time': use_sim_time}],
+            package='vacuum_coverage',
+            executable='coverage_executor_node',
+            name='coverage_executor',
             output='screen',
+            parameters=[{
+                'waypoints_topic': '/planner_server/coverage_path',
+                'replan_service': '/planner_server/replan',
+                'use_sim_time': use_sim_time,
+            }],
         ),
     ])
